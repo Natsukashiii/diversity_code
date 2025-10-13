@@ -1,0 +1,50 @@
+config:
+  server: False
+
+source:
+  original_data: dataset_50k.csv
+  dataset_dir: data/dataset_dir
+  repo_field: repo  
+
+rq1:
+  sample_size: 480
+  random_state: 42
+
+
+date:
+  today: 2025-04-02
+
+github:
+  tokens_str: token1,token2
+
+travis:
+  tokens_str: token1,token2
+
+path:
+  rq1_path: data/rq1/
+  rq2_path: data/rq2/
+  rq3_path: data/rq3/
+  rq3_data_path: data/rq3_data/
+  rq3_plot_path: data/rq3_plot/
+  original_data_filename: data/rq1/dataset_50k.csv
+  metadata_filename: data/rq1/metadata.csv
+  metadata_cleaned_filename: data/rq1/metadata_cleaned.csv
+  random_filename: data/rq1/random.csv
+  quota_filename: data/rq1/quota.csv
+  stratified_filename: data/rq1/stratified.csv
+  dataset_path: dataset/
+  dataset_info_path : dataset_info/
+
+server.path:
+  rq1_path: /workspace/data/rq1/
+  rq2_path: /workspace/data/rq2/
+  rq3_data_path: /workspace/data/rq3_data/
+  rq3_plot_path: /workspace/data/rq3_plot/
+  original_data_filename: /workspace/data/rq1/dataset_50k.csv
+  metadata_filename:      /workspace/data/rq1/metadata.csv
+  metadata_cleaned_filename: /workspace/data/rq1/metadata_cleaned.csv
+  random_filename:        /workspace/data/rq1/random.csv
+  quota_filename:         /workspace/data/rq1/quota.csv
+  stratified_filename:    /workspace/data/rq1/stratified.csv
+  dataset_path:           /workspace/dataset/
+  dataset_info_path:      /workspace/dataset_info/
