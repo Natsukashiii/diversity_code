@@ -1,7 +1,7 @@
 
 # RQ0 DATA PREPARE
 
-## 📌 Overview
+## Overview
 This module is for **creating the metadata file** used in the following sampling and analysis.  
 The metadata aggregates essential repository information and applies a set of filtering rules, so that the final dataset only keeps high-quality and relevant projects.
 
