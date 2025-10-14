@@ -1,16 +1,28 @@
+# Outline
+The following are the descriptions for the modules.
+- **RQ0 – Data Preparation:**  
+  Build initial metadata from raw dataset (CSV or directory) and apply filtering rules (enough analysis data).
+- **RQ0.1 – Metadata Cleaning:**  
+  Validate and clean metadata (remove invalid repos, inconsistent timestamps, missing files).
+- **RQ1 – Sampling:**  
+  Generate representative subsets (random, stratified, quota) from cleaned metadata for analysis.
+- **RQ2 – Distribution Analysis:**  
+  Compare activity metrics (commits, issues, PRs, etc.) between stratified and quota datasets.
+- **RQ3 – RDD Analysis & Visualization:**  
+  Data analysis on monthly metrics and visualization.
+
 
 # RQ0 DATA PREPARE
 
 ## Overview
 This module is for **creating the metadata file** used in the following sampling and analysis.  
-The metadata aggregates essential repository information and applies a set of filtering rules, so that the final dataset only keeps high-quality and relevant projects.
 
 The pipeline:
 1. Read raw dataset (CSV or dataset directory, configured in `config.yaml`)
 2. Apply filtering rules
 3. Keep only required metadata fields
 4. Output `metadata.csv`
-5. Print summary statistics
+5. Print
 
 ---
 
@@ -19,23 +31,20 @@ The pipeline:
 ### Option 0: Generate metadata from raw dataset (recommended)
 1. **Prepare input source** in `config.yaml`:
    - `csv_path`: Path to a CSV file containing repo metadata  
-     - Required field: `"repo"` (format: `owner/repoFullName`)  
-   - `dataset_dir`: If using a dataset directory, repos will be under `dataset/owner/repoFullName`  
+     - Required field: `"repo"` (format: `owner/rpo`)  
+   - `dataset_dir`: If using a dataset directory, repos will be under `dataset/owner/repo`  
    - If both CSV and dataset_dir are provided, **CSV will be used by default**
 
 2. **Run the script**
-   ```bash
-   cd rq0_prepare
-   python rq0_create_metadata.py
-
-3. **Check the results**
-    - Output file: {cfg.path.metadata} (default: data/metadata.csv) 
+3. 
+4. **Check the results**
+    - Output file: {cfg.path.metadata} (default: data/rq1/metadata.csv) 
     - Summary statistics are printed in the console
 
 
 
-### Option 1: Run with your own data
-Replace data/dataset_50k.csv (or set cfg.path.original_data in config.yaml) with your dataset, then rerun the script.
+### Option 1: Run with CSV (extracted data)
+Replace data/dataset_50k.csv (or set cfg.path.original_data in config.yaml) with your own dataset (original), then rerun the script.
 Make sure your CSV contains the required fields (or replace with your own field, but you need to correct the corresponding field name in services.filter_rules).
 
 1. **input dataset** (CSV or directory) must contain the following fields:
@@ -69,17 +78,13 @@ A project is kept only if all of the following hold:
 | Rule              | Condition |
 |-------------------|-----------|
 | **Repository state** | `isArchived = False` <br> `isDisabled = False` <br> `isLocked = False` |
-| **Release existence** | `releases > 12` |
-| **Commit activity**   | `commits / age_in_years > 12` <br> (`age_in_years` is computed from `createdAt` to now) |
-| **Issues**            | `totalIssues > 12` |
+| **Activity** | `releases > 12` <br> `commits / age_in_years > 12` <br> (`age_in_years` is computed from `createdAt` to now) <br> `totalIssues > 12` |
 | **Main language**     | Must be `"Java"` or `"Python"` |
 | **Recent activity**   | `lastCommit` is in **2024** |
 | **CI adoption**       | At least one of **TravisCI** or **GitHubActions** in `ci_adoption_times` is not None <br> `ci_type = "TravisCI"` or `"GitHubActions"` <br> `ci_adoption_time = corresponding date` |
 
 3. **Output Fields**
-
-After filtering, the final metadata file (`data/rq1/metadata.csv`) contains:
-
+The final metadata file (`data/rq1/metadata.csv`) contains:
 | Field             | Description |
 |-------------------|-------------|
 | repo              | Repository name (`owner/repo`) |
@@ -117,7 +122,6 @@ After filtering, the final metadata file (`data/rq1/metadata.csv`) contains:
 
 # RQ0.1  METADATA CREATION
 
-
 ## 3_data_cleaning.py
 
 ### Overview
@@ -132,21 +136,18 @@ It filters invalid repositories, inconsistent timestamps, and incomplete data fi
 - Parses and validates `createdAt` and `ci_adoption_time`  
 - Applies filtering rules:
   1. Invalid or missing repo name  
-  2. CI adoption time earlier than creation (because the adoption time is from commit history, it may come from different branch )
+  2. CI adoption time earlier than creation (because the adoption time is from commit history, it may come from a different branch )
   3. Missing CI adoption timestamp  
   4. Less than 1 year between creation → adoption or adoption → now  
-  5. Missing required CSV files (`commits_local`, `prs`, `releases`, `issues`) or both CI logs empty (`gactions`, `jobs`)
+  5. Missing required CSV files (`commits_local`, `prs`, `releases`, `issues`) or both CI logs are empty (`gactions`, `jobs`)
 
 ---
 
 ### Input
 - **`metadata.csv`** (in `RQ1_DATA_PATH`)  
-
 ---
-
 ### Output
-- **`metadata_cleaned.csv`**  
-
+- **`metadata_cleaned.csv`**  (in `RQ1_DATA_PATH`)  
 ---
 
 
@@ -219,8 +220,7 @@ and saves CI/CD run data (GitHub Actions and Travis CI) into structured folders.
 ## rq2_distribution.py
 
 ### Overview
-Computes and compares monthly engineering metrics between two datasets (“Stratified” from `base.csv` and “Quota” from `quota.csv`).  
-Outputs statistical summaries (Mann–Whitney U, Cliff’s delta, percent differences) and generates overlap distribution plots for each metric.
+Computes and compares monthly metrics between two datasets (“Stratified” from `base.csv` and “Quota” from `quota.csv`).  
 
 ---
 
@@ -245,7 +245,7 @@ Outputs statistical summaries (Mann–Whitney U, Cliff’s delta, percent differ
 ## rdd_rq3.py
 
 ### Overview
-Runs Regression Discontinuity Design (RDD) analyses on monthly repo metrics
+Runs RDD analyses on monthly repo metrics
 
 ### Inputs
 - **`RQ1_DATA_PATH/base.csv`** — index for Stratified dataset (default when `input_source="stra"`).
