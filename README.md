@@ -49,6 +49,7 @@ Make sure your CSV contains the required fields (or replace with your own field,
 
 1. **input dataset** (CSV or directory) must contain the following fields:
 
+```text
 | Field           | Type      | Description                                                                 |
 |-----------------|-----------|-----------------------------------------------------------------------------|
 | repo            | string    | Repository name in `owner/repo` format                                      |
@@ -75,6 +76,7 @@ Make sure your CSV contains the required fields (or replace with your own field,
 2. **Filter Rules**
 A project is kept only if all of the following hold:
 
+```text
 | Rule              | Condition |
 |-------------------|-----------|
 | **Repository state** | `isArchived = False` <br> `isDisabled = False` <br> `isLocked = False` |
@@ -85,6 +87,7 @@ A project is kept only if all of the following hold:
 
 3. **Output Fields**
 The final metadata file (`data/rq1/metadata.csv`) contains:
+```text
 | Field             | Description |
 |-------------------|-------------|
 | repo              | Repository name (`owner/repo`) |
@@ -182,6 +185,7 @@ It generates stratified, quota-based, and random samples from the cleaned metada
 ---
 
 ### Output
+```text
 | File | Description |
 |------|--------------|
 | **`base.csv`** | Full dataset with added bucket columns |
