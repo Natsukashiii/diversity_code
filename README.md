@@ -70,7 +70,7 @@ Make sure your CSV contains the required fields (or replace with your own field,
 | lastCommit      | datetime  | Timestamp of the last commit                                                |
 | totalPullRequests | int     | Total number of pull requests                                               |
 | ci_adoption_times | JSON-like | CI adoption info, e.g. `{'TravisCI': None, 'GitHubActions': '2019-09-12T17:33:21+02:00', ...}` |
-
+```
 
 
 2. **Filter Rules**
@@ -84,7 +84,7 @@ A project is kept only if all of the following hold:
 | **Main language**     | Must be `"Java"` or `"Python"` |
 | **Recent activity**   | `lastCommit` is in **2024** |
 | **CI adoption**       | At least one of **TravisCI** or **GitHubActions** in `ci_adoption_times` is not None <br> `ci_type = "TravisCI"` or `"GitHubActions"` <br> `ci_adoption_time = corresponding date` |
-
+```
 3. **Output Fields**
 The final metadata file (`data/rq1/metadata.csv`) contains:
 ```text
@@ -106,7 +106,7 @@ The final metadata file (`data/rq1/metadata.csv`) contains:
 | totalPullRequests | Total pull requests |
 | ci_type           | `"TravisCI"` or `"GitHubActions"` |
 | ci_adoption_time  | CI adoption timestamp |
-
+```
 
 
 
@@ -195,7 +195,7 @@ It generates stratified, quota-based, and random samples from the cleaned metada
 | **`bucket_config.csv`** | Bucket configuration and ranges |
 | **`quota_gaps.csv`** | Buckets that could not reach quota targets |
 | **`rq1_dataset_compare.pdf`** | Visual diagnostics (ECDF + violin plots) |
-
+```
 ---
 
 
