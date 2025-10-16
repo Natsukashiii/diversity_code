@@ -36,7 +36,6 @@ The pipeline:
    - If both CSV and dataset_dir are provided, **CSV will be used by default**
 
 2. **Run the script**
-3. 
 4. **Check the results**
     - Output file: {cfg.path.metadata} (default: data/rq1/metadata.csv) 
     - Summary statistics are printed in the console
