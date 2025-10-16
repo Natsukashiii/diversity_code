@@ -1,6 +1,7 @@
 # sample_method.py
 from __future__ import annotations
 
+from itertools import count
 from typing import List, Optional, Tuple
 
 import numpy as np
@@ -168,3 +169,60 @@ def quota_sample(
     gaps = pd.DataFrame(gap_rows).sort_values(["shortfall", "target"], ascending=[False, False]).reset_index(drop=True)
 
     return sampled, gaps
+
+
+def oversample_to_min_per_bucket(
+    df: pd.DataFrame,
+    bucket_cols: list,
+    min_size: int = 30,
+    repo_col: str = "repo",
+    random_state: int | None = None,
+) -> pd.DataFrame:
+    """
+    For each bucket (defined by bucket_cols), if group size < min_size,
+    randomly sample rows *with replacement* from that group to pad up to min_size.
+    Duplicated rows keep all feature values but get a unique repo name.
+
+    Returns a new DataFrame with an extra column `is_oversampled` (0/1).
+    """
+    if not bucket_cols:
+        raise ValueError("bucket_cols must not be empty for oversampling.")
+
+    rng = np.random.RandomState(random_state)
+    parts = [df.copy()]
+    parts[0]["is_oversampled"] = 0
+
+    # Maintain global uniqueness for repo names
+    existing = set(df[repo_col].astype(str)) if repo_col in df.columns else set()
+    uid = count(1)
+
+    def _unique_repo_name(base: str) -> str:
+        # generate globally unique name
+        candidate = f"{base}__dup{next(uid)}"
+        while candidate in existing:
+            candidate = f"{base}__dup{next(uid)}"
+        existing.add(candidate)
+        return candidate
+
+    for _, g in df.groupby(bucket_cols, dropna=False, as_index=False):
+        k = len(g)
+        if k >= min_size:
+            continue
+        need = min_size - k
+
+        # sample indices with replacement within this bucket
+        sample_idx = rng.choice(g.index.values, size=need, replace=True)
+        dup = df.loc[sample_idx].copy()
+
+        # mark and rename repos to unique synthetic ids
+        dup["is_oversampled"] = 1
+        if repo_col in dup.columns:
+            # prefer to keep a hint of origin; if repo缺失就用 bucket key
+            base_names = dup[repo_col].astype(str).fillna("synthetic")
+            dup[repo_col] = [ _unique_repo_name(b) for b in base_names ]
+        parts.append(dup)
+
+    out = pd.concat(parts, ignore_index=True)
+    if "is_oversampled" not in out.columns:
+        out["is_oversampled"] = 0
+    return out

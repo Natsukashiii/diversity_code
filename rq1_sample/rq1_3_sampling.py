@@ -12,8 +12,8 @@ from services.sample_helper import (apply_buckets,
                                     print_and_save_simple_counts,
                                     print_bucket_overview, print_quota_gaps,
                                     translate_desc_to_name, visualize)
-from services.sample_method import (quota_sample, random_sample,
-                                    stratified_sample)
+from services.sample_method import (oversample_to_min_per_bucket, quota_sample,
+                                    random_sample, stratified_sample)
 
 from config.helper import load_csv, safe_to_csv
 from config.load_config import load_config
@@ -103,8 +103,23 @@ def main() -> None:
         total_size=SAMPLE_SIZE,
         random_state=RANDOM_STATE,
     )
-    safe_to_csv(df_quota, output_quota_path)
+    safe_to_csv(df_quota, "quota_origin.csv")
     print_bucket_overview(df_quota, sample_fields=SAMPLE_FIELDS, title="[Quota] bucket counts")
+
+
+# --- ADD: oversample quota to ensure >=30 per bucket ---
+    quota_bucket_cols = [f"{f}_bucket" for f in cfg_numeric.keys()]
+    df_quota_oversampled = oversample_to_min_per_bucket(
+        df=df_quota,
+        bucket_cols=quota_bucket_cols,
+        min_size=30,
+        repo_col="repo",
+        random_state=RANDOM_STATE,
+    )
+    safe_to_csv(df_quota_oversampled,output_quota_path)
+    print_bucket_overview(df_quota_oversampled, sample_fields=SAMPLE_FIELDS, title="[Quota-Oversample] bucket counts")
+
+
 
     print_bucket_overview(df_bucketed_numeric, sample_fields=SAMPLE_FIELDS, title="[Base] bucket counts")
 

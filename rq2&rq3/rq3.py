@@ -362,6 +362,9 @@ def _build_design(df: pd.DataFrame,
     after_mask = mi >= adopt_idx
     d.loc[after_mask, "time_after"] = (mi[after_mask] - adopt_idx).astype(int)
 
+    d["time_centered"] = d["time"] - d["time"][d["intervention"]==0].mean()
+    d["post_time_centered"] = d["time_centered"] * d["intervention"]
+
     return d
 
 # ------------------ Config ------------------
@@ -443,7 +446,7 @@ def fit_rdd(df: pd.DataFrame,
         return out
 
     # build FE terms
-    fe_terms = ["time", "intervention", "time_after"]
+    fe_terms = ["time_centered", "intervention", "time_after_ortho"]
     if cfg.add_controls:
         for c in ["log_total_commits", "age_at_travis_months", "log_num_authors"]:
             if c in d.columns:
@@ -453,6 +456,22 @@ def fit_rdd(df: pd.DataFrame,
         fe_terms.append("C(mainLanguage)")
 
     formula = f"{metric} ~ " + " + ".join(fe_terms)
+
+    # ---- orthogonalize time_after against time_centered ----
+    if "time_after" in d.columns and "time_centered" in d.columns:
+        try:
+            Xa = sm.add_constant(d["time_centered"].astype(float))
+            ya = d["time_after"].astype(float)
+            alpha = sm.OLS(ya, Xa, missing="drop").fit()
+            d["time_after_ortho"] = ya - alpha.predict(Xa)
+        except Exception:
+            d["time_after_ortho"] = d.get("time_after", np.nan)
+    else:
+        d["time_after_ortho"] = d.get("time_after", np.nan)
+
+    # Optional: mean-centering for extra numerical stability
+    d["time_centered"]    = d["time_centered"] - d["time_centered"].mean()
+    d["time_after_ortho"] = d["time_after_ortho"] - d["time_after_ortho"].mean()
 
     # --- Prepare FE design for VIF / R² (independent of model flavor) ---
     try:
@@ -493,9 +512,9 @@ def fit_rdd(df: pd.DataFrame,
             pvals  = res.pvalues
 
             for nm_src, nm_dst_base in [
-                ("time", "time"),
+                ("time_centered", "time"),
                 ("intervention", "level_gamma"),
-                ("time_after", "slope_delta"),
+                ("time_after_ortho", "slope_delta"),
             ]:
                 if nm_src in params.index:
                     out[f"coef_{nm_dst_base}"] = float(params[nm_src])
@@ -514,10 +533,10 @@ def fit_rdd(df: pd.DataFrame,
                     out[f"stars_{nm}"] = _stars(p)
 
             # Type-II Wald χ²
-            wald = _type2_wald_chi2(res, ["time", "intervention", "time_after"])
-            out["wald_time"]         = wald.get("time", np.nan)
+            wald = _type2_wald_chi2(res, ["time_centered","intervention","time_after_ortho"])
+            out["wald_time"]         = wald.get("time_centered", np.nan)
             out["wald_intervention"] = wald.get("intervention", np.nan)
-            out["wald_time_after"]   = wald.get("time_after", np.nan)
+            out["wald_time_after"]   = wald.get("time_after_ortho", np.nan)
 
             # R2m / R2c (approx)
             if X_fe is not None:
@@ -549,9 +568,9 @@ def fit_rdd(df: pd.DataFrame,
         pvals  = res.pvalues
 
         for nm_src, nm_dst_base in [
-            ("time", "time"),
+            ("time_centered", "time"),
             ("intervention", "level_gamma"),
-            ("time_after", "slope_delta"),
+            ("time_after_ortho", "slope_delta"),
         ]:
             if nm_src in params.index:
                 out[f"coef_{nm_dst_base}"] = float(params[nm_src])
@@ -569,10 +588,10 @@ def fit_rdd(df: pd.DataFrame,
                 out[f"stars_{nm}"] = _stars(p)
 
         # Type-II Wald χ²
-        wald = _type2_wald_chi2(res, ["time", "intervention", "time_after"])
-        out["wald_time"]         = wald.get("time", np.nan)
+        wald = _type2_wald_chi2(res, ["time_centered", "intervention", "time_after_ortho"])
+        out["wald_time"]         = wald.get("time_centered", np.nan)
         out["wald_intervention"] = wald.get("intervention", np.nan)
-        out["wald_time_after"]   = wald.get("time_after", np.nan)
+        out["wald_time_after"]   = wald.get("time_after_ortho", np.nan)
 
         # OLS: R2m=R2c=R2
         try:
@@ -593,10 +612,10 @@ def fit_rdd(df: pd.DataFrame,
 def _days_to_months(days):
     """Vectorized: days -> months. Works for scalar, Series, or ndarray."""
     if isinstance(days, (pd.Series, np.ndarray)):
-        return pd.to_numeric(days, errors="coerce") / 30.4375
+        return pd.to_numeric(days, errors="coerce") / 30
     # scalar
     try:
-        return float(days) / 30.4375
+        return float(days) / 30
     except Exception:
         return np.nan
 

@@ -230,7 +230,7 @@ def plot_opposite_context_dimensions(outdir: Path):
 
 def _contexts_by_sign_for_metric(metric: str) -> dict:
     """
-    返回:
+return:
       {
         'pos': {'contexts': [...], 'n_repos': int, 'n_buckets': int},
         'neg': {'contexts': [...], 'n_repos': int, 'n_buckets': int}
@@ -289,7 +289,7 @@ def plot_context_dimensions_by_sign(outdir: Path):
                 counts.loc[m, (dim_title, order[0], sign)] = n0
                 counts.loc[m, (dim_title, order[1], sign)] = n1
 
-    # 百分比
+    # percentage
     perc = counts.copy()
     for (dim_title, _, order) in DIM_SPECS:
         for sign in ("pos", "neg"):
@@ -304,16 +304,15 @@ def plot_context_dimensions_by_sign(outdir: Path):
     # counts_out.to_csv(outdir / "by_sign_counts.csv")
     # perc_out.to_csv(outdir / "by_sign_percents.csv", float_format="%.6f")
 
-    # —— 画图（2 行 × 4 列） —— #
+    # —— plot —— #
     n_metrics = len(METRICS)
-    fig_h = 0.44 * max(4, n_metrics) * 2 + 1.2   # 两行
+    fig_h = 0.44 * max(4, n_metrics) * 2 + 1.2   
     fig_w = 10.0
     fig, axes = plt.subplots(nrows=2, ncols=4, figsize=(fig_w, fig_h), sharey=True, constrained_layout=False)
     plt.subplots_adjust(wspace=0.15, hspace=0.25, left=0.20, right=0.92, top=0.92, bottom=0.08)
 
     y = np.arange(n_metrics)[::-1]
 
-    # y 轴标签显示：metric + 各 sign 的样本量（bucket 数），便于对比
     y_labels_pos = [f"{m} (+k={int(extras.loc[m, ('bucket_total','pos')])})" for m in METRICS]
     y_labels_neg = [f"{m} (-k={int(extras.loc[m, ('bucket_total','neg')])})" for m in METRICS]
 
@@ -345,7 +344,6 @@ def plot_context_dimensions_by_sign(outdir: Path):
                 ax.set_yticks(y)
                 ax.tick_params(axis="y", left=False, labelleft=False)
 
-            # 每个子图都带上简单图例（两段标签）
             ax.legend(frameon=True, fontsize=8, loc="lower right")
 
     fig.suptitle("Context distribution - split by adoption slope (Δ>0 vs Δ<0)", fontsize=11, y=0.98)
@@ -480,19 +478,16 @@ def plot_metric(metric: str, outdir: Path):
         yi = y[i]
         is_opposite = bool(opposite[i])
 
-        # 样式逻辑
         if is_opposite:
-            marker = "^"            # 反向 = 三角形
-            color = "#7a7a7a"       # 浅灰黑
+            marker = "^"            
+            color = "#7a7a7a"       
         else:
-            marker = "o"            # 同向 = 圆形
-            color = "black"         # 深黑
+            marker = "o"           
+            color = "black"        
 
-        # 置信区间线
         if pd.notna(ci_lo[i]) and pd.notna(ci_hi[i]):
             axL.plot([ci_lo[i], ci_hi[i]], [yi, yi], color=color, lw=0.8, alpha=0.9)
 
-        # 中心点
         axL.scatter([coef[i]], [yi],
                     s=50,
                     facecolors="none",
@@ -527,6 +522,33 @@ def plot_metric(metric: str, outdir: Path):
     axL.spines['right'].set_linewidth(0.8)  
     axL.spines['right'].set_color("#555555")  
     axR.spines['left'].set_visible(False)
+
+
+    # add numbs
+    bars = axR.barh(y, repos, color=S.repo_bar, edgecolor="black", linewidth=0.6)
+    axR.set_xlabel("")
+    axR.set_yticks(y)
+    axR.tick_params(axis="y", left=False, labelleft=False)
+    axR.grid(axis="x", linestyle=":", alpha=0.4)
+
+    # —— Add the concrete num to the bar ——
+    # max_val = 0
+    # offset = max(1, int(np.nanmax(repos) * 0.01)) if np.nanmax(repos) > 0 else 1 
+    # for rect in bars:
+    #     w = rect.get_width()
+    #     if w > 0:
+    #         max_val = max(max_val, w)
+    #         y_mid = rect.get_y() + rect.get_height() / 2.0
+    #         axR.text(
+    #             w + offset,           
+    #             y_mid,
+    #             f"{int(w):,}",         
+    #             va="center", ha="left",
+    #             fontsize=6
+    #         )
+
+    # if max_val > 0:
+    #     axR.set_xlim(0, max_val * 1.15)
 
 
     # Legend

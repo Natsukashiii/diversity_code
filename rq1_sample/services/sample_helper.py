@@ -804,6 +804,6 @@ def print_and_save_simple_counts(name: str,
         print(f"\n[Counts] {name} by {tag}")
         counts = simple_counts(df, dims)
         print(counts.to_string(index=False))
-        out_path = out_dir / f"{name.lower()}_{tag}_counts.csv"
-        safe_to_csv(counts, out_path)
-        print(f"[INFO] Saved: {out_path}")
+        # out_path = out_dir / f"{name.lower()}_{tag}_counts.csv"
+        # safe_to_csv(counts, out_path)
+        # print(f"[INFO] Saved: {out_path}")
