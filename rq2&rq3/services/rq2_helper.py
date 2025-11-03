@@ -547,7 +547,7 @@ def summarize_pre_post(dist_df: pd.DataFrame) -> pd.DataFrame:
                     wilcoxon_W = float(stat.statistic)
                     wilcoxon_p = float(stat.pvalue)
         except Exception:
-            pass
+            pass 
 
         rows.append({
             "metric": metric,
