@@ -511,7 +511,6 @@ def summarize_pre_post(dist_df: pd.DataFrame) -> pd.DataFrame:
         relative_change_mean = np.nan if (pre_mean is None or pd.isna(pre_mean) or pre_mean == 0) \
                                else (post_mean - pre_mean) / pre_mean
 
-        # --- NEW: Cohen's d (independent groups; pooled SD) ---
         # only compute when both groups have n>=2 and finite SDs
         if (n_pre >= 2) and (n_post >= 2) and pd.notna(pre_std) and pd.notna(post_std):
             df_pool = (n_pre + n_post - 2)
@@ -563,10 +562,10 @@ def summarize_pre_post(dist_df: pd.DataFrame) -> pd.DataFrame:
             "delta_median": delta_median,
             "relative_change_mean": relative_change_mean,
             "repo_count": repo_count,
-            "cohens_d": cohens_d,  # NEW
-            "cliffs_delta": cdelta,  # NEW
-            "wilcoxon_W": wilcoxon_W,         # NEW
-            "wilcoxon_p": wilcoxon_p,         # NEW
+            "cohens_d": cohens_d,  
+            "cliffs_delta": cdelta,  
+            "wilcoxon_W": wilcoxon_W,         
+            "wilcoxon_p": wilcoxon_p,         
         })
 
     return pd.DataFrame(rows, columns=cols)

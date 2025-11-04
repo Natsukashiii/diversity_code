@@ -418,7 +418,6 @@ def apply_buckets(
 
     bucket_info = pd.DataFrame(rows).sort_values("bucket_id").reset_index(drop=True)
 
-    # --- NEW: compute bucket_name and map back to frames ---
     # (translate_desc_to_name expects *_level/*_value fields in bucket_info)
     bucket_info["bucket_name"] = bucket_info.apply(lambda r: translate_desc_to_name(r), axis=1)
     id2name = dict(zip(bucket_info["bucket_id"], bucket_info["bucket_name"]))
@@ -476,7 +475,6 @@ def attach_ranges_to_bucket_info(
     return out
 
 
-# ----------------------------------------------------------------------
 
 
 # --------------------------- reporting/plots ---------------------------

@@ -729,7 +729,7 @@ def collect_commits_local(
         pass
 
     # 4) collect logs
-    rows = _collect_git_log(repo_src_dir)  # your existing collector
+    rows = _collect_git_log(repo_src_dir) 
     if not rows:
         output_csv.write_text("")
         return 0

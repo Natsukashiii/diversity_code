@@ -829,7 +829,7 @@ class PipelineParams:
     skip_transition_month: bool = True
     min_obs: int = 8
     robust_cov: str = "HC1"                       # OLS only
-    # column mapping (if your CSV uses different names)
+    # column mapping (replace when using different names)
     col_total_commits: str = "commits"
     col_num_authors: str  = "contributors"
     col_created_at: str   = "createdAt"

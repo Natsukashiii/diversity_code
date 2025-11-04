@@ -364,7 +364,7 @@ def _read_csv(p: Path) -> pd.DataFrame:
 def _fmt_bucket_name(s: str) -> str:
     if not isinstance(s, str) or not s or s.lower() == "overall":
         return "overall"
-    # you can customize to your compact code mapping here if needed
+    # It can customize
     parts = [x.split("=")[-1].strip() for x in s.split("|")]
     return " ".join([x[:4] for x in parts]) or s
 
